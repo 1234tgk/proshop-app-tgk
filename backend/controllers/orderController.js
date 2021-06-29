@@ -68,8 +68,27 @@ const updateOrderToPaid = expressAsyncHandler(async (req, res) => {
       id: req.body.id,
       status: req.body.status,
       update_time: req.body.update_time,
-      email_address: req.body.payer.email_address
+      email_address: req.body.payer.email_address,
     }
+
+    const updatedOrder = await order.save()
+
+    res.json(updatedOrder)
+  } else {
+    res.status(404)
+    throw new Error('Order not found')
+  }
+})
+
+// @desc    Update ordered to delivered
+// @route   PUT /api/orders/:id/deliver
+// @access  Private/Admin
+const updateOrderToDelivered = expressAsyncHandler(async (req, res) => {
+  const order = await Order.findById(req.params.id)
+
+  if (order) {
+    order.isDelivered = true
+    order.deliveredAt = Date.now()
 
     const updatedOrder = await order.save()
 
@@ -88,4 +107,27 @@ const getMyOrders = expressAsyncHandler(async (req, res) => {
   res.json(orders)
 })
 
-export { addOrderItems, getOrderById, updateOrderToPaid, getMyOrders }
+// @desc    Get all orders
+// @route   GET /api/orders
+// @access  Private/Admin
+const getOrders = expressAsyncHandler(async (req, res) => {
+  const pageSize = 8
+  const page = Number(req.query.pageNumber) || 1
+
+  const count = await Order.countDocuments({})
+
+  const orders = await Order.find({})
+    .limit(pageSize)
+    .skip(pageSize * (page - 1))
+    .populate('user', 'id name')
+  res.json({ orders, page, pages: Math.ceil(count / pageSize) })
+})
+
+export {
+  addOrderItems,
+  getOrderById,
+  updateOrderToPaid,
+  updateOrderToDelivered,
+  getMyOrders,
+  getOrders,
+}

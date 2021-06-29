@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import Message from '../components/Message'
 import CheckoutSteps from '../components/CheckoutSteps'
 import { createOrder } from '../actions/orderActions'
+import Meta from '../components/Meta'
 
 const PlaceOrderScreen = ({ history }) => {
   const dispatch = useDispatch()
@@ -40,9 +41,10 @@ const PlaceOrderScreen = ({ history }) => {
     )
   }
 
-  cart.itemsPrice = cart.cartItems.reduce(
-    (acc, item) => acc + item.price * item.qty,
-    0
+  cart.itemsPrice = Number(
+    cart.cartItems
+      .reduce((acc, item) => acc + item.price * item.qty, 0)
+      .toFixed(2)
   )
 
   // arbitrary shipping price
@@ -51,10 +53,13 @@ const PlaceOrderScreen = ({ history }) => {
   // arbitrary tax w/out representation
   cart.taxPrice = Number((0.15 * cart.itemsPrice).toFixed(2))
 
-  cart.totalPrice = cart.itemsPrice + cart.shippingPrice + cart.taxPrice
+  cart.totalPrice = Number(
+    (cart.itemsPrice + cart.shippingPrice + cart.taxPrice).toFixed(2)
+  )
 
   return (
     <>
+      <Meta title='Place Order | ProShop' />
       <CheckoutSteps step1 step2 step3 step4 />
       <Row>
         <Col md={8}>
@@ -141,10 +146,9 @@ const PlaceOrderScreen = ({ history }) => {
               <ListGroup.Item>
                 {error && <Message variant='danger'>{error}</Message>}
               </ListGroup.Item>
-              <ListGroup.Item>
+              <ListGroup.Item className='d-grid gap-0'>
                 <Button
                   type='button'
-                  className='btn-block'
                   disabled={cart.cartItems.length === 0}
                   onClick={placeOrderHandler}
                 >
